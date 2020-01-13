@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="./Css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <div>
+            <div class="timer">0.00</div>
+            <div class="challeng">Create the Word by dragging letters into the empty boxes</div>
+            <div class="challeng1">You have one minute</div>
+        </div>
+
+        <div class="row mt-4">
+            <div id="optionCardsDiv">               
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div id="choosenCardsDiv">
+            </div>
+        </div>
+
+        <div>
+            <div class="check"></div>
+            <div class="wrong"></div>
+            <div class="again">Try Again</div>
+        </div>
+
+    </div>
+
+
+
+
+
+
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+        integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous">
+    </script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous">
+    </script>
+    <script>
+
+        // data as array of objects
+        const options = [{
+                word: 'lion',
+                letters: ['y', 'i', 'j', 'l', 'v', 'x', 'o', 'n']
+            },
+            {
+                word: 'flower',
+                letters: ['f', 'i', 'e', 'l', 'w', 'x', 'o', 'r']
+            },
+            {
+                word: 'tiger',
+                letters: ['f', 'i', 'e', 'g', 't', 'x', 'o', 'r']
+            },
+            {
+                word: 'word',
+                letters: ['w', 'i', 'e', 'd', 't', 'x', 'o', 'r']
+            },
+            {
+                word: 'father',
+                letters: ['f', 'i', 'e', 'a', 't', 'x', 'h', 'r']
+            },
+            {
+                word: 'Abood',
+                letters: ['b', 'o', 'e', 'a', 't', 'o', 'd', 'r']
+            }
+        ]
+
+        // getting random option
+        const optionIdx = Math.floor(Math.random() * options.length)
+        const selectedOption = options[optionIdx]
+
+
+        // calling the options renderer 
+        renderContent()
+
+        // setting the interval for one minute
+        let seconds = 59
+        let interval = setInterval(() => {
+            if (seconds >= 0) {
+                $('.timer').text('0.' + seconds)
+                seconds--
+            } else {
+                finishTest()
+                $(".cardContainer").sortable("disable");
+            }
+
+        }, 1000);
+
+        // tries Counter
+        let triesCounter = 0
+
+        // finishTest test function which will check result
+        function finishTest() {
+            let answer = ''
+            $('#choosenCardsDiv>.cardContainer>.optionCard').each(function (index, element) {
+                // element == this
+                //to get the letter inside the element
+                answer += $(element).text()
+
+            });
+            if (answer == options[optionIdx].word.toUpperCase()) {
+                $('.check').css('display', 'block');
+                // hide wrong and try again
+                $('.again').css('display', 'none');
+                $('.wrong').css('display', 'none');
+                // stop sorting
+                $(".cardContainer").sortable("disable");
+                // stop interval (time counter)
+                clearInterval(interval)
+            } else {
+                $('.wrong').css('display', 'block');
+                if (triesCounter < 2) {
+                    $('.again').css('display', 'block');
+                    renderContent()
+                    triesCounter++
+                } else {
+                    $(".cardContainer").sortable("disable");
+                    $('.again').css('display', 'none');
+                    clearInterval(interval)
+                }
+            }
+
+        }
+        
+        function renderContent() {
+            $('#optionCardsDiv').empty()
+            $('#choosenCardsDiv').empty()
+            // calculate the container width to make sure elements will be next each other
+            let optionCardsDivWidth = 0
+            selectedOption.letters.forEach(letter => {
+                optionCardsDivWidth += 110
+                let content = $('<div class="cardContainer"><div class="optionCard">' + letter.toUpperCase() +
+                    '</div></div>')
+                $('#optionCardsDiv').append(content);
+            })
+            $('#optionCardsDiv').css('width', optionCardsDivWidth + 'px')
+
+            // calculate the container width to make sure elements will be next each other
+            let choosenCardsDivWidth = 0
+            selectedOption.word.split('').forEach(letter => {
+                choosenCardsDivWidth += 110
+                let content = $('<div class="cardContainer"></div>')
+                $('#choosenCardsDiv').append(content);
+            })
+            $('#choosenCardsDiv').css('width', choosenCardsDivWidth + 'px')
+            $(".cardContainer").sortable({
+                connectWith: '.cardContainer',
+                receive: function (event, ui) {
+                    // sort will not work if the container already contains an element
+                    if ($(this).children().length > 1) {
+                        $(ui.sender).sortable('cancel');
+                    }
+                    if ($('#choosenCardsDiv>.cardContainer>.optionCard').length == selectedOption.word
+                        .length) {
+                        finishTest()
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>
